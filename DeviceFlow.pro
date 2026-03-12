@@ -29,3 +29,6 @@ HEADERS += \
     deviceflow.h \
     state.h \
     trigger.h
+
+DISTFILES += \
+    State.qml

@@ -1,5 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include "state.h"
+#include "deviceflow.h"
+#include "trigger.h"
 
 int main(int argc, char *argv[])
 {
@@ -7,6 +10,15 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
     QGuiApplication app(argc, argv);
+
+    // Register Status enum as a metatype
+    qRegisterMetaType<StateBase::Status>("Status");
+    qRegisterMetaType<StateBase::Status>("StateBase::Status");
+
+    // Register C++ types with QML
+    qmlRegisterType<StateBase>("DeviceFlow", 1, 0, "StateBase");
+    qmlRegisterType<DeviceFlow>("DeviceFlow", 1, 0, "DeviceFlow");
+    qmlRegisterType<Trigger>("DeviceFlow", 1, 0, "Trigger");
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
