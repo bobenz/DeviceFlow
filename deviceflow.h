@@ -2,8 +2,8 @@
 #define DEVICEFLOW_H
 
 #include <QObject>
-#include "state.h"
 #include "trigger.h"
+#include "state.h"
 
 class DeviceFlow : public QObject
 {

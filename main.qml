@@ -61,7 +61,7 @@ Window {
         }
     }
 
-    FlowState {
+    Sequence {
         id: testState
 
         function runFlow() {

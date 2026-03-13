@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import DeviceFlow 1.0
+import FlowGraph 1.0
 
 StateBase {
     id: root

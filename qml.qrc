@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>FlowState.qml</file>
+        <file>Sequence.qml</file>
     </qresource>
 </RCC>

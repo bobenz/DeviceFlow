@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
     qRegisterMetaType<StateBase::Status>("StateBase::Status");
 
     // Register C++ types with QML
-    qmlRegisterType<StateBase>("DeviceFlow", 1, 0, "StateBase");
-    qmlRegisterType<DeviceFlow>("DeviceFlow", 1, 0, "DeviceFlow");
-    qmlRegisterType<Trigger>("DeviceFlow", 1, 0, "Trigger");
+    qmlRegisterType<StateBase>("FlowGraph", 1, 0, "StateBase");
+    qmlRegisterType<DeviceFlow>("FlowGraph", 1, 0, "Flow");
+    qmlRegisterType<Trigger>("FlowGraph", 1, 0, "Trigger");
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
