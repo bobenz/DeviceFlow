@@ -15,6 +15,10 @@ int main(int argc, char *argv[])
     qRegisterMetaType<StateBase::Status>("Status");
     qRegisterMetaType<StateBase::Status>("StateBase::Status");
 
+    // Register WaitResult enum as a metatype
+    qRegisterMetaType<StateBase::WaitResult>("WaitResult");
+    qRegisterMetaType<StateBase::WaitResult>("StateBase::WaitResult");
+
     // Register C++ types with QML
     qmlRegisterType<StateBase>("FlowGraph", 1, 0, "StateBase");
     qmlRegisterType<DeviceFlow>("FlowGraph", 1, 0, "Flow");

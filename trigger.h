@@ -25,7 +25,7 @@ public:
     {
         if (!m_enabled)
             return false;
-        emit fired();
+        QMetaObject::invokeMethod(this, &Trigger::fired, Qt::QueuedConnection);
         return true;
     }
 
