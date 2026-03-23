@@ -1,46 +1,37 @@
 #ifndef DEVICEFLOW_H
 #define DEVICEFLOW_H
-
-#include <QObject>
+#include <QList>
+#include <QQmlListProperty>
 #include "state.h"
-#include "trigger.h"
+#include "sequencebase.h"
 
-class DeviceFlow : public QObject
+class DeviceFlow : public StateBase
 {
     Q_OBJECT
-    Q_PROPERTY(StateBase *currentState READ currentState WRITE setCurrentState NOTIFY
-                   currentStateChanged FINAL)
-    Q_PROPERTY(StateBase *initialState READ initialState WRITE setInitialState NOTIFY
-                   initialStateChanged FINAL)
-    Q_PROPERTY(Trigger *run READ run NOTIFY runChanged FINAL)
-    Q_PROPERTY(Trigger *cancel READ cancel NOTIFY cancelChanged FINAL)
+    // 1. Mark the property as the DefaultProperty for QML
+    Q_CLASSINFO("DefaultProperty", "sequences")
+    Q_PROPERTY(QQmlListProperty<SequenceBase> sequences READ sequences NOTIFY sequencesChanged)
+
 public:
     explicit DeviceFlow(QObject *parent = nullptr);
-    Q_INVOKABLE void setState(StateBase *state);
-    StateBase *currentState() const;
-    void setCurrentState(StateBase *newCurrentState);
 
-    StateBase *initialState() const;
-    void setInitialState(StateBase *newInitialState);
+    Q_INVOKABLE QVariantMap getProperties() override;
+    Status status() const override;
 
-    Trigger *run() const;
-
-    Trigger *cancel() const;
+    QQmlListProperty<SequenceBase> sequences();
 
 signals:
-
-    void currentStateChanged();
-    void initialStateChanged();
-
-    void runChanged();
-
-    void cancelChanged();
+    void sequencesChanged();
 
 private:
-    StateBase *m_currentState = nullptr;
-    StateBase *m_initialState = nullptr;
-    mutable Trigger m_run;
-    mutable Trigger m_cancel;
+    // 2. Static callbacks required by QQmlListProperty
+    static void appendSequence(QQmlListProperty<SequenceBase>* list, SequenceBase* p);
+    static int sequenceCount(QQmlListProperty<SequenceBase>* list);
+    static SequenceBase* sequenceAt(QQmlListProperty<SequenceBase>* list, int index);
+    static void clearSequences(QQmlListProperty<SequenceBase>* list);
+
+    // Internal storage
+    QList<SequenceBase*> m_sequences;
 };
 
 #endif // DEVICEFLOW_H

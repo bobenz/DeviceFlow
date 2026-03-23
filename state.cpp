@@ -1,21 +1,15 @@
 #include "state.h"
-#include "deviceflow.h"
+//#include "deviceflow.h"
 #include <QEventLoop>
 #include <QDebug>
 #include <QMetaMethod>
+#include <QMetaProperty>
+#include <QTimer>
+#include <QVariantMap>
 
 StateBase::StateBase(QObject *parent)
     : QObject{parent}
-{}
-
-StateBase *StateBase::prevState() const
 {
-    return m_prevState;
-}
-
-void StateBase::setPrevState(StateBase *prev)
-{
-    m_prevState = prev;
 }
 
 StateBase::Status StateBase::status() const
@@ -27,48 +21,48 @@ void StateBase::setStatus(const Status &newStatus)
 {
     if (m_status == newStatus)
         return;
+    bool _active = active();
     m_status = newStatus;
+    if (_active != active())
+        emit activeChanged();
     emit statusChanged();
+
 }
 
-void StateBase::waitSignal(QObject *sender, QString name)
+Trigger *StateBase::run() const
 {
-    if (!sender)
-        return;
+    return &m_run;
+}
 
-    // Remove trailing () if present
-    if (name.endsWith("()")) {
-        name = name.left(name.length() - 2);
+Trigger *StateBase::cancel() const
+{
+    return &m_cancel;
+}
+
+QVariantMap StateBase::getProperties()
+{
+    QVariantMap map;
+    const QMetaObject *mo = metaObject();
+    
+    int startIndex = StateBase::staticMetaObject.propertyOffset();
+    
+    for (int i = startIndex; i < mo->propertyCount(); ++i) {
+        QMetaProperty prop = mo->property(i);
+        QVariantMap propDetails;
+        propDetails.insert(QStringLiteral("value"), prop.read(this));
+        propDetails.insert(QStringLiteral("type"), QString::fromLatin1(prop.typeName()));
+        propDetails.insert(QStringLiteral("access"), prop.isWritable() ? QStringLiteral("readwrite") : QStringLiteral("readonly"));
+        map.insert(QString::fromLatin1(prop.name()), propDetails);
     }
 
-    // Try to find the signal in the meta-object
-    const QMetaObject *mo = sender->metaObject();
-    int signalIndex = -1;
-
-    // Search through ALL methods (including inherited ones) starting from 0
-    for (int i = 0; i < mo->methodCount(); ++i) {
-        QMetaMethod method = mo->method(i);
-        if (method.methodType() == QMetaMethod::Signal) {
-            QString methodName = QString::fromLatin1(method.name());
-            if (methodName == name) {
-                signalIndex = i;
-                break;
-            }
-        }
+    for (const QByteArray &propName : dynamicPropertyNames()) {
+        QVariant val = property(propName);
+        QVariantMap propDetails;
+        propDetails.insert(QStringLiteral("value"), val);
+        propDetails.insert(QStringLiteral("type"), QString::fromLatin1(val.typeName()));
+        propDetails.insert(QStringLiteral("access"), QStringLiteral("readwrite"));
+        map.insert(QString::fromLatin1(propName), propDetails);
     }
-
-    if (signalIndex == -1) {
-        qWarning() << "waitSignal: Signal" << name << "not found on object" << sender->metaObject()->className();
-        return;
-    }
-
-    QEventLoop loop;
-
-    // Use QMetaObject::connect for more robust connection
-    if (!QMetaObject::connect(sender, signalIndex, &loop, loop.metaObject()->indexOfSlot("quit()"))) {
-        qWarning() << "waitSignal: Failed to connect to signal" << name;
-        return;
-    }
-
-    loop.exec();
+    
+    return map;
 }

@@ -1,58 +1,88 @@
 #include "deviceflow.h"
 
 DeviceFlow::DeviceFlow(QObject *parent)
-    : QObject{parent}
+    : StateBase{parent}
 {}
 
-StateBase *DeviceFlow::currentState() const
+QQmlListProperty<SequenceBase> DeviceFlow::sequences()
 {
-    return m_currentState;
+    return QQmlListProperty<SequenceBase>(this, &m_sequences,
+                                          &DeviceFlow::appendSequence,
+                                          &DeviceFlow::sequenceCount,
+                                          &DeviceFlow::sequenceAt,
+                                          &DeviceFlow::clearSequences);
 }
 
-void DeviceFlow::setCurrentState(StateBase *newState)
+void DeviceFlow::appendSequence(QQmlListProperty<SequenceBase>* list, SequenceBase* p)
 {
-    if (m_currentState == newState)
-        return;
-    m_currentState = newState;
-    emit currentStateChanged();
+    DeviceFlow* df = reinterpret_cast<DeviceFlow*>(list->object);
+    df->m_sequences.append(p);
+    connect(p, &StateBase::statusChanged, df, &StateBase::statusChanged);
+    connect(p, &StateBase::activeChanged, df, &StateBase::activeChanged);
 }
 
-StateBase *DeviceFlow::initialState() const
+int DeviceFlow::sequenceCount(QQmlListProperty<SequenceBase>* list)
 {
-    return m_initialState;
+    return reinterpret_cast<DeviceFlow*>(list->object)->m_sequences.count();
 }
 
-void DeviceFlow::setInitialState(StateBase *newInitialState)
+SequenceBase* DeviceFlow::sequenceAt(QQmlListProperty<SequenceBase>* list, int index)
 {
-    if (m_initialState == newInitialState)
-        return;
-    if (m_initialState != nullptr) {
-        // disconnect
+    return reinterpret_cast<DeviceFlow*>(list->object)->m_sequences.at(index);
+}
+
+void DeviceFlow::clearSequences(QQmlListProperty<SequenceBase>* list)
+{
+    DeviceFlow* df = reinterpret_cast<DeviceFlow*>(list->object);
+    for (SequenceBase* p : df->m_sequences) {
+        if (p) {
+            disconnect(p, &StateBase::statusChanged, df, &StateBase::statusChanged);
+            disconnect(p, &StateBase::activeChanged, df, &StateBase::activeChanged);
+        }
     }
-    m_initialState = newInitialState;
-
-    if (m_initialState != nullptr)
-        connect(&m_run, &Trigger::fired, m_initialState, &StateBase::_enter);
-    emit initialStateChanged();
+    df->m_sequences.clear();
 }
 
-void DeviceFlow::setState(StateBase *state)
+StateBase::Status DeviceFlow::status() const
 {
-    if (m_currentState) {
-        m_currentState->_exit();
-        state->setPrevState(m_currentState);
+    if (m_sequences.isEmpty()) {
+        return m_status;
     }
-
-    setCurrentState(state);
-    state->_enter();
+    
+    bool allIdle = true;
+    bool allCompleted = true;
+    bool anyRunning = false;
+    bool anyWaiting = false;
+    
+    for (SequenceBase* seq : m_sequences) {
+        if (!seq) continue;
+        Status s = seq->status();
+        
+        if (s != Idle) allIdle = false;
+        if (s != Completed) allCompleted = false;
+        if (s == Running) anyRunning = true;
+        if (s == Waiting) anyWaiting = true;
+    }
+    
+    if (anyRunning) return Running;
+    if (anyWaiting) return Waiting; 
+    if (allIdle) return Idle;
+    if (allCompleted) return Completed;
+    
+    return m_status;
 }
 
-Trigger *DeviceFlow::run() const
+QVariantMap DeviceFlow::getProperties()
 {
-    return &m_run;
-}
-
-Trigger *DeviceFlow::cancel() const
-{
-    return &m_cancel;
+    QVariantMap map = StateBase::getProperties();
+    
+    QVariantList seqList;
+    for (SequenceBase* seq : m_sequences) {
+        if (seq) {
+            seqList.append(seq->getProperties());
+        }
+    }
+    
+    map.insert(QStringLiteral("sequences"), seqList);
+    return map;
 }

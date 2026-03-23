@@ -3,75 +3,60 @@
 
 #include <QEventLoop>
 #include <QObject>
+#include <QVariantMap>
+#include "trigger.h"
+
+
 
 class StateBase : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool condition READ condition WRITE setCondition NOTIFY conditionChanged)
-    Q_PROPERTY(StateBase *prevState READ prevState NOTIFY prevStateChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(bool isActive READ active NOTIFY activeChanged)
+    Q_PROPERTY(int error READ error  NOTIFY errorChanged FINAL)
+    Q_PROPERTY(Trigger *run READ run NOTIFY runChanged FINAL)
+    Q_PROPERTY(Trigger *cancel READ cancel NOTIFY cancelChanged FINAL)
+
 public:
-    enum Status { IDLE, RUNNING, FINISHED, CANCELLED, ERROR };
-    Q_ENUM(StateBase::Status)
+
+    enum Status { Idle, Running, Waiting, Completed };
+    Q_ENUM(Status)
+
     explicit StateBase(QObject *parent = nullptr);
 
-    bool condition() const { return m_condition; }
+    int error(){return m_errorcode;}
 
-    void setCondition(bool newCondition)
+    void setError(int code)
     {
-        if (m_condition == newCondition)
-            return;
-        m_condition = newCondition;
-        emit conditionChanged();
+        if(m_errorcode == code) return;
+        m_errorcode = code;
+        emit errorChanged();
     }
 
-    Q_INVOKABLE void beginWait()
-    {
-        if (m_condition) {
-            return;
-        }
+    Q_INVOKABLE virtual QVariantMap getProperties();
 
-        QEventLoop loop;
-        connect(this, &StateBase::conditionChanged, &loop, [&]() {
-            if (m_condition) {
-                loop.quit();
-            }
-        });
-        loop.exec();
-    }
 
-    Q_INVOKABLE void waitSignal(QObject* sender, QString name);
-
-    void _enter()
-    {
-        if (m_status != Status::IDLE)
-            return;
-        setStatus(Status::RUNNING);
-        emit enter();
-    }
-    void _exit()
-    {
-        setStatus(Status::FINISHED);
-        emit exit();
-    }
-    StateBase *prevState() const;
-    void setPrevState(StateBase *);
-    Status status() const;
+    virtual Status status() const;
+    bool active(){ return m_status == Status::Running || m_status == Status::Waiting;}
     void setStatus(const Status &newStatus);
 
-signals:
-    void conditionChanged();
-    void enter();
-    void exit();
+    Trigger *run() const;
+    Trigger *cancel() const;
 
-    void prevStateChanged();
+signals:
 
     void statusChanged();
+    void runChanged();
+    void cancelChanged();
+    void activeChanged();
+    void errorChanged();
 
-private:
-    bool m_condition = false;
-    StateBase *m_prevState = nullptr;
-    Status m_status = IDLE;
+
+protected:
+    Status m_status = Idle;
+    int m_errorcode = 0;  //0 - ok, 1 - canceled
+    mutable Trigger m_run;
+    mutable Trigger m_cancel;
 };
 
 Q_DECLARE_METATYPE(StateBase::Status)

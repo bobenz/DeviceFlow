@@ -5,9 +5,9 @@ QT += quick
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        action.cpp \
         deviceflow.cpp \
         main.cpp \
+        sequencebase.cpp \
         state.cpp \
         trigger.cpp
 
@@ -25,8 +25,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    action.h \
     deviceflow.h \
+    sequencebase.h \
     state.h \
     trigger.h
 

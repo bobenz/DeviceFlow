@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Sequence.qml</file>
+    </qresource>
+</RCC>
