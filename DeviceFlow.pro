@@ -33,3 +33,5 @@ include(deviceflow.pri)
 
 # DISTFILES += \
 #     State.qml
+
+SOURCES +=

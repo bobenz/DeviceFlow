@@ -8,7 +8,6 @@ QT += quick
 # C++ Source Files
 SOURCES += \
     $$PWD/deviceflow.cpp \
-    $$PWD/main.cpp \
     $$PWD/sequencebase.cpp \
     $$PWD/state.cpp \
     $$PWD/trigger.cpp
@@ -20,8 +19,8 @@ HEADERS += \
     $$PWD/state.h \
     $$PWD/trigger.h
 
-# Resource Files
-RESOURCES += $$PWD/qml.qrc
-
 # Files to show in the Project Tree (Designer support)
 DISTFILES += $$PWD/Sequence.qml
+
+RESOURCES += \
+    $$PWD/df.qrc

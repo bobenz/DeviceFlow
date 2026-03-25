@@ -4,6 +4,7 @@ import FlowGraph 1.0
 SequenceBase {
     id: root
 
+
     // Overloaded wait function:
     // 1. wait(booleanExpression[, timeout]) - waits for boolean expression to become true
     // 2. wait(sender, "signalName()"[, timeout]) - waits for a specific signal

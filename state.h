@@ -14,8 +14,8 @@ class StateBase : public QObject
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(bool isActive READ active NOTIFY activeChanged)
     Q_PROPERTY(int error READ error  NOTIFY errorChanged FINAL)
-    Q_PROPERTY(Trigger *run READ run NOTIFY runChanged FINAL)
-    Q_PROPERTY(Trigger *cancel READ cancel NOTIFY cancelChanged FINAL)
+    Q_PROPERTY(Trigger *run READ run WRITE setRun NOTIFY runChanged FINAL)
+    Q_PROPERTY(Trigger *cancel READ cancel WRITE setCancel NOTIFY cancelChanged FINAL)
 
 public:
 
@@ -43,6 +43,10 @@ public:
     Trigger *run() const;
     Trigger *cancel() const;
 
+    void setCancel(Trigger *newCancel);
+
+    void setRun(Trigger *newRun);
+
 signals:
 
     void statusChanged();
@@ -55,8 +59,8 @@ signals:
 protected:
     Status m_status = Idle;
     int m_errorcode = 0;  //0 - ok, 1 - canceled
-    mutable Trigger m_run;
-    mutable Trigger m_cancel;
+    Trigger* m_run = nullptr;
+    Trigger* m_cancel = nullptr;
 };
 
 Q_DECLARE_METATYPE(StateBase::Status)

@@ -8,7 +8,9 @@ SequenceBase::SequenceBase(QObject *parent) : StateBase(parent)
 {
 
     // Connect run trigger to _enter()
-    connect(&m_run, &Trigger::fired, this, &SequenceBase::_enter);
+    m_run = new Trigger(this);
+    m_cancel = new Trigger(this);
+    connect(m_run, &Trigger::fired, this, &SequenceBase::_enter);
 }
 
 int SequenceBase::stepIndex() const

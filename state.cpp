@@ -10,6 +10,7 @@
 StateBase::StateBase(QObject *parent)
     : QObject{parent}
 {
+    qDebug() << "STATE BASE";
 }
 
 StateBase::Status StateBase::status() const
@@ -31,12 +32,12 @@ void StateBase::setStatus(const Status &newStatus)
 
 Trigger *StateBase::run() const
 {
-    return &m_run;
+    return m_run;
 }
 
 Trigger *StateBase::cancel() const
 {
-    return &m_cancel;
+    return m_cancel;
 }
 
 QVariantMap StateBase::getProperties()
@@ -65,4 +66,20 @@ QVariantMap StateBase::getProperties()
     }
     
     return map;
+}
+
+void StateBase::setCancel(Trigger *newCancel)
+{
+    if (m_cancel == newCancel)
+        return;
+    m_cancel = newCancel;
+    emit cancelChanged();
+}
+
+void StateBase::setRun(Trigger *newRun)
+{
+    if (m_run == newRun)
+        return;
+    m_run = newRun;
+    emit runChanged();
 }

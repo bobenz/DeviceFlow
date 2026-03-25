@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QQmlEngine>
+#include <QTimer>
 
 class Trigger : public QObject
 {
@@ -25,7 +26,7 @@ public:
     {
         if (!m_enabled)
             return false;
-        emit fired();
+        QTimer::singleShot(0,this, &Trigger::fired);
         return true;
     }
 

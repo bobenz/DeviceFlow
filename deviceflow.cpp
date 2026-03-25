@@ -1,8 +1,11 @@
 #include "deviceflow.h"
+#include <QDebug>
 
 DeviceFlow::DeviceFlow(QObject *parent)
     : StateBase{parent}
-{}
+{
+    qDebug() << "FLOW START";
+}
 
 QQmlListProperty<SequenceBase> DeviceFlow::sequences()
 {

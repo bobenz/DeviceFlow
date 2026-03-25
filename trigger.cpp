@@ -2,4 +2,7 @@
 
 Trigger::Trigger(QObject *parent)
     : QObject{parent}
-{}
+{
+
+
+}
